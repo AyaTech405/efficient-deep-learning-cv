@@ -1,476 +1,854 @@
-# Efficient Deep Learning for Computer Vision
+\# Efficient Deep Learning for Computer Vision
 
-## Accuracy–Efficiency Trade-offs in Image Classification
+
+
+\## Accuracy–Efficiency Trade-offs in Image Classification
+
+
 
 A Bachelor-level experimental research project studying the trade-off between predictive performance and computational efficiency in pretrained deep learning models for image classification.
 
-## Motivation
 
-Deep learning models can achieve strong predictive performance while requiring substantial compute and memory. For practical AI systems, model selection is therefore not only about accuracy: model size and inference latency also matter.
 
-This project compares a conventional residual network with a lightweight mobile-oriented architecture under a controlled CIFAR-10 experiment.
+\## Research Question
 
-## Research Question
+
 
 > How can we improve the computational efficiency of a deep learning image-classification system while maintaining acceptable predictive performance?
 
+
+
 This project is an experimental benchmark. It does not claim a new algorithm or state-of-the-art performance.
 
-## Models
 
-* **ResNet18** pretrained on ImageNet
-* **MobileNetV3-Small** pretrained on ImageNet
+
+\## Models
+
+
+
+\* \*\*ResNet18\*\* pretrained on ImageNet
+
+\* \*\*MobileNetV3-Small\*\* pretrained on ImageNet
+
+
 
 The final classification heads are adapted to the 10 CIFAR-10 classes.
 
-## Dataset
 
-CIFAR-10 contains 60,000 color images across 10 classes.
+
+\## Dataset
+
+
+
+The experiments use \*\*CIFAR-10\*\*, containing 60,000 color images across 10 classes.
+
+
 
 The implementation:
 
-* resizes images to `224 × 224`
-* applies ImageNet normalization
-* uses pretrained torchvision backbones
-* supports reproducible dataset subsets
 
-The default experimental configuration uses:
 
-* 2,000 training images
-* 500 test images
-* batch size of 32
-* fixed random seed of 42
-* 2 training epochs by default
+\* resizes images from `32 × 32` to `224 × 224`
 
-The subset sizes, batch size, number of epochs, and other training parameters can be changed from the command line.
+\* applies ImageNet normalization
 
-## Methodology
+\* uses ImageNet-pretrained torchvision backbones
 
-The experimental workflow consists of the following steps:
+\* uses reproducible dataset subsets
 
-1. Load CIFAR-10 with reproducible subsets.
-2. Resize the images to the input resolution expected by the pretrained models.
-3. Load ImageNet-pretrained ResNet18 and MobileNetV3-Small.
-4. Adapt the final classification layers to the 10 CIFAR-10 classes.
-5. Fine-tune each model using the same experimental configuration.
-6. Evaluate classification performance on the test subset.
-7. Measure model parameters and estimated model size.
-8. Benchmark inference latency under controlled conditions.
-9. Compare the two architectures using structured metrics and visualizations.
-10. Apply post-training dynamic INT8 quantization to supported `Linear` layers.
-11. Compare the original and optimized model where the quantization runtime is supported.
 
-The same dataset split, training configuration, and evaluation procedure should be used for both models when making a direct comparison.
 
-## Metrics
+\### Experimental configuration
 
-The project evaluates both predictive performance and computational efficiency.
 
-### Predictive metrics
 
-* Accuracy
-* Macro Precision
-* Macro Recall
-* Macro F1-score
+| Setting          |     Value |
 
-### Efficiency metrics
+| ---------------- | --------: |
 
-* Trainable parameter count
-* Estimated model size in MiB
-* Inference latency in milliseconds
+| Training images  |     2,000 |
 
-Latency is hardware-dependent. Meaningful comparisons therefore require the same machine, runtime, batch size, preprocessing configuration, and measurement protocol.
+| Test images      |       500 |
 
-## Post-Training Quantization
+| Image resolution | 224 × 224 |
 
-The project includes a conservative optimization experiment using dynamic INT8 quantization.
+| Batch size       |        32 |
 
-The quantization experiment targets supported `Linear` layers after training.
+| Epochs           |         2 |
 
-It deliberately does not introduce:
+| Optimizer        |     AdamW |
 
-* ONNX
-* TensorRT
-* pruning
-* knowledge distillation
-* distributed training
-* custom quantization algorithms
+| Learning rate    |      1e-4 |
 
-Because most of the computation in these CNN architectures occurs in convolutional layers, the improvement obtained from quantizing only supported `Linear` layers may be modest.
+| Weight decay     |      1e-4 |
 
-The purpose of this experiment is therefore to study the practical effect of a simple post-training optimization rather than to claim a complete model-compression solution.
+| Random seed      |        42 |
 
-## Project Structure
+| Device           |       CPU |
+
+
+
+The configuration is intentionally lightweight so that the experiment can be reproduced on a normal computer.
+
+
+
+\## Methodology
+
+
+
+The experimental workflow consists of:
+
+
+
+1\. Loading CIFAR-10 using reproducible subsets.
+
+2\. Resizing the images to the input resolution expected by the pretrained models.
+
+3\. Loading ImageNet-pretrained ResNet18 and MobileNetV3-Small.
+
+4\. Adapting the final classification layers to the 10 CIFAR-10 classes.
+
+5\. Fine-tuning both models using the same experimental configuration.
+
+6\. Evaluating predictive performance on the test subset.
+
+7\. Measuring parameter count and estimated model size.
+
+8\. Benchmarking CPU inference latency.
+
+9\. Comparing predictive performance and computational efficiency.
+
+10\. Applying post-training dynamic INT8 quantization to supported `Linear` layers.
+
+11\. Comparing the original and quantized models using the same optimization-run evaluation procedure.
+
+
+
+\## Evaluation Metrics
+
+
+
+\### Predictive performance
+
+
+
+\* Accuracy
+
+\* Macro Precision
+
+\* Macro Recall
+
+\* Macro F1-score
+
+
+
+\### Computational efficiency
+
+
+
+\* Total parameter count
+
+\* Estimated model size in MiB
+
+\* CPU inference latency in milliseconds
+
+
+
+Latency is hardware- and runtime-dependent. Direct latency comparisons are meaningful only when the same hardware, software environment, batch size, and measurement protocol are used.
+
+
+
+\# Results
+
+
+
+The following results were obtained from the completed experiments using the default configuration described above.
+
+
+
+\## Baseline comparison
+
+
+
+| Model             | Accuracy | Precision | Recall | Macro F1 | Parameters | Size (MiB) | Latency (ms) |
+
+| ----------------- | -------: | --------: | -----: | -------: | ---------: | ---------: | -----------: |
+
+| ResNet18          |    0.854 |    0.8595 | 0.8535 |   0.8542 | 11,181,642 |      42.69 |        34.78 |
+
+| MobileNetV3-Small |    0.732 |    0.7709 | 0.7330 |   0.7243 |  1,528,106 |       5.88 |        16.44 |
+
+
+
+Under this experimental configuration, \*\*ResNet18 achieved higher predictive metrics\*\*, while \*\*MobileNetV3-Small required substantially fewer parameters, less storage, and lower measured CPU inference latency\*\*.
+
+
+
+Compared with ResNet18, MobileNetV3-Small had approximately:
+
+
+
+\* \*\*86.3% fewer parameters\*\*
+
+\* \*\*86.2% smaller estimated model size\*\*
+
+\* \*\*52.7% lower measured baseline CPU latency\*\*
+
+
+
+ResNet18 achieved approximately:
+
+
+
+\* \*\*12.2 percentage points higher accuracy\*\*
+
+\* \*\*12.2 percentage points higher macro F1\*\*
+
+
+
+These values describe this particular experimental configuration and should not be generalized as universal performance differences between the architectures.
+
+
+
+\## Training results
+
+
+
+The models were fine-tuned for two epochs.
+
+
+
+\### ResNet18
+
+
+
+| Epoch | Training Loss | Accuracy | Macro F1 |
+
+| ----: | ------------: | -------: | -------: |
+
+|     1 |        1.1446 |   0.7860 |   0.7836 |
+
+|     2 |        0.3868 |   0.8540 |   0.8542 |
+
+
+
+\### MobileNetV3-Small
+
+
+
+| Epoch | Training Loss | Accuracy | Macro F1 |
+
+| ----: | ------------: | -------: | -------: |
+
+|     1 |        1.8152 |   0.6440 |   0.6240 |
+
+|     2 |        0.8804 |   0.7320 |   0.7243 |
+
+
+
+\## Post-Training Quantization
+
+
+
+A second experiment investigated \*\*dynamic INT8 post-training quantization\*\*.
+
+
+
+The optimization targets supported `Linear` layers only. The convolutional layers remain in floating-point precision.
+
+
+
+For this reason, the experiment should be interpreted as a study of a simple post-training optimization rather than as full CNN quantization.
+
+
+
+\### ResNet18
+
+
+
+| Metric       | Original | Quantized |    Change |
+
+| ------------ | -------: | --------: | --------: |
+
+| Accuracy     |   0.8540 |    0.8520 |  −0.20 pp |
+
+| Precision    |   0.8595 |    0.8578 |  −0.17 pp |
+
+| Recall       |   0.8535 |    0.8515 |  −0.21 pp |
+
+| Macro F1     |   0.8542 |    0.8521 |  −0.21 pp |
+
+| Size (MiB)   |    42.69 |     42.67 | −0.02 MiB |
+
+| Latency (ms) |    38.62 |     38.89 |  +0.27 ms |
+
+
+
+For ResNet18, quantization of the supported linear layers produced only a very small reduction in estimated model size and did not improve measured latency in this experiment.
+
+
+
+\### MobileNetV3-Small
+
+
+
+| Metric       | Original | Quantized |    Change |
+
+| ------------ | -------: | --------: | --------: |
+
+| Accuracy     |   0.7320 |    0.7240 |  −0.80 pp |
+
+| Precision    |   0.7709 |    0.7667 |  −0.41 pp |
+
+| Recall       |   0.7330 |    0.7255 |  −0.75 pp |
+
+| Macro F1     |   0.7243 |    0.7166 |  −0.78 pp |
+
+| Size (MiB)   |     5.88 |      3.58 | −2.29 MiB |
+
+| Latency (ms) |    20.09 |     17.29 |  −2.80 ms |
+
+
+
+For MobileNetV3-Small, the quantization experiment reduced the measured model size by approximately \*\*39.0%\*\* and reduced measured latency by approximately \*\*13.9%\*\*, while predictive metrics decreased modestly under this configuration.
+
+
+
+> The original and quantized latency values above are compared \*\*within the same optimization run\*\*. They should not be directly compared with the separate baseline benchmark latency values because runtime measurements can vary between benchmark runs.
+
+
+
+\## Accuracy–Efficiency Trade-off
+
+
+
+The experiments illustrate that model selection involves more than predictive accuracy alone.
+
+
+
+Under the tested configuration:
+
+
+
+\* ResNet18 provided higher measured predictive performance.
+
+\* MobileNetV3-Small used substantially fewer parameters.
+
+\* MobileNetV3-Small had a substantially smaller estimated model footprint.
+
+\* MobileNetV3-Small had lower measured baseline CPU latency.
+
+\* The simple dynamic quantization experiment had different effects on the two architectures.
+
+
+
+The purpose is therefore not to identify a universally superior architecture, but to experimentally examine the relationship between \*\*accuracy, model size, parameter count, and inference efficiency\*\*.
+
+
+
+\## Post-Training Optimization Scope
+
+
+
+The project intentionally uses a conservative optimization approach.
+
+
+
+It does not include:
+
+
+
+\* ONNX
+
+\* TensorRT
+
+\* pruning
+
+\* knowledge distillation
+
+\* distributed training
+
+\* custom quantization algorithms
+
+\* full convolutional INT8 quantization
+
+
+
+The current experiment focuses on dynamic INT8 quantization of supported `Linear` layers.
+
+
+
+Because most computation in these CNN architectures occurs in convolutional layers, the expected impact of this limited optimization is inherently constrained.
+
+
+
+\## Project Structure
+
+
 
 ```text
+
 efficient-deep-learning-cv/
+
 ├── README.md
+
 ├── requirements.txt
+
 ├── .gitignore
+
 │
+
 ├── src/
+
 │   ├── data.py
+
 │   ├── models.py
+
 │   ├── train.py
+
 │   ├── evaluate.py
+
 │   ├── benchmark.py
+
 │   └── optimize.py
+
 │
+
 ├── results/
+
 │   └── figures/
+
 │       └── .gitkeep
+
 │
+
 ├── report/
+
 │   └── report.md
+
 │
+
 └── paper/
-    └── research_paper.md
+
+&#x20;   └── research\_paper.md
+
 ```
 
-### Main modules
 
-* `src/data.py` — dataset loading, preprocessing, reproducible subsets, and random seed configuration.
-* `src/models.py` — model construction and model-size utilities.
-* `src/train.py` — model fine-tuning and checkpoint generation.
-* `src/evaluate.py` — checkpoint evaluation and classification metrics.
-* `src/benchmark.py` — inference benchmarking and model comparison.
-* `src/optimize.py` — post-training dynamic quantization experiment.
 
-Generated checkpoints, downloaded datasets, virtual environments, and temporary Python files are excluded from version control through `.gitignore`.
+\### Main modules
 
-## Installation
 
-From the project root, create a virtual environment:
+
+\* `src/data.py` — dataset loading, preprocessing, reproducible subsets, and random seed configuration.
+
+\* `src/models.py` — model construction and model-size utilities.
+
+\* `src/train.py` — model fine-tuning and checkpoint generation.
+
+\* `src/evaluate.py` — checkpoint evaluation and classification metrics.
+
+\* `src/benchmark.py` — inference benchmarking and model comparison.
+
+\* `src/optimize.py` — post-training dynamic quantization experiment.
+
+
+
+Generated datasets, checkpoints, virtual environments, CSV/JSON result files, and temporary files are excluded from version control through `.gitignore`.
+
+
+
+\## Installation
+
+
+
+From the project root:
+
+
 
 ```bash
+
 python -m venv .venv
+
 ```
 
-### Windows PowerShell
 
-Activate the environment with:
+
+\### Windows PowerShell
+
+
 
 ```powershell
-.venv\Scripts\Activate.ps1
+
+.venv\\Scripts\\Activate.ps1
+
 ```
 
-If PowerShell blocks script execution for the current session, use:
+
+
+If PowerShell blocks script execution for the current session:
+
+
 
 ```powershell
+
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+
 ```
 
-Then activate the environment again:
+
+
+Then activate the environment:
+
+
 
 ```powershell
-.venv\Scripts\Activate.ps1
+
+.venv\\Scripts\\Activate.ps1
+
 ```
 
-### Linux/macOS
+
+
+\### Linux/macOS
+
+
 
 ```bash
+
 source .venv/bin/activate
+
 ```
 
-Install the project dependencies:
+
+
+Install dependencies:
+
+
 
 ```bash
+
 python -m pip install --upgrade pip
+
 pip install -r requirements.txt
+
 ```
 
-## Reproduction
 
-All commands below should be executed from the project root.
 
-### 1. Train ResNet18
+\## Reproduction
 
-```powershell
+
+
+All commands should be executed from the project root.
+
+
+
+\### Train ResNet18
+
+
+
+```bash
+
 python -m src.train --model resnet18
+
 ```
 
-### 2. Train MobileNetV3-Small
 
-```powershell
+
+\### Train MobileNetV3-Small
+
+
+
+```bash
+
 python -m src.train --model mobilenetv3-small
+
 ```
 
-The first run downloads:
 
-* the CIFAR-10 dataset
-* the pretrained ImageNet weights required by the models
 
-These files are intentionally excluded from Git.
+The first run downloads the CIFAR-10 dataset and the required ImageNet pretrained weights.
 
-Training produces checkpoints under:
 
-```text
-results/checkpoints/
+
+\### Evaluate ResNet18
+
+
+
+```bash
+
+python -m src.evaluate --model resnet18 --checkpoint results/checkpoints/resnet18\_best.pt
+
 ```
 
-and training history under:
 
-```text
-results/training_history.csv
+
+\### Evaluate MobileNetV3-Small
+
+
+
+```bash
+
+python -m src.evaluate --model mobilenetv3-small --checkpoint results/checkpoints/mobilenetv3\_small\_best.pt
+
 ```
 
-These generated artifacts are also excluded from version control.
 
-### 3. Evaluate a ResNet18 checkpoint
 
-After training:
+\### Benchmark both models
 
-```powershell
-python -m src.evaluate --model resnet18 --checkpoint results/checkpoints/resnet18_best.pt
+
+
+```bash
+
+python -m src.benchmark --resnet-checkpoint results/checkpoints/resnet18\_best.pt --mobilenet-checkpoint results/checkpoints/mobilenetv3\_small\_best.pt
+
 ```
 
-### 4. Evaluate a MobileNetV3-Small checkpoint
 
-```powershell
-python -m src.evaluate --model mobilenetv3-small --checkpoint results/checkpoints/mobilenetv3_small_best.pt
-```
 
-### 5. Benchmark both models
+\### Run the optimization experiment
 
-After both checkpoints have been generated:
 
-```powershell
-python -m src.benchmark --resnet-checkpoint results/checkpoints/resnet18_best.pt --mobilenet-checkpoint results/checkpoints/mobilenetv3_small_best.pt
-```
-
-On Windows PowerShell, the command can also be entered as a single line, as shown above.
-
-### 6. Run the optimization experiment
 
 For ResNet18:
 
-```powershell
-python -m src.optimize --model resnet18 --checkpoint results/checkpoints/resnet18_best.pt
+
+
+```bash
+
+python -m src.optimize --model resnet18 --checkpoint results/checkpoints/resnet18\_best.pt
+
 ```
 
-The optimization script applies dynamic INT8 quantization to supported `Linear` layers and compares the optimized model with the original model where supported by the runtime.
 
-## Experimental Scale
 
-The default configuration is intentionally lightweight so that the project can run on a normal laptop.
+For MobileNetV3-Small:
 
-The default training configuration uses:
 
-```text
-Training subset: 2,000 images
-Test subset:       500 images
-Batch size:         32
-Epochs:              2
-Learning rate:   1e-4
-Weight decay:    1e-4
-Random seed:        42
+
+```bash
+
+python -m src.optimize --model mobilenetv3-small --checkpoint results/checkpoints/mobilenetv3\_small\_best.pt
+
 ```
 
-For a stronger experiment, the subset size and number of epochs can be increased.
 
-For example:
 
-```powershell
-python -m src.train --model resnet18 --train-size 10000 --test-size 2000 --epochs 5
-```
+\## Reproducibility
 
-The equivalent configuration should then be used for MobileNetV3-Small:
 
-```powershell
-python -m src.train --model mobilenetv3-small --train-size 10000 --test-size 2000 --epochs 5
-```
 
-When comparing the two architectures, the experimental settings should remain identical whenever possible.
+The project uses a fixed random seed of `42` to improve reproducibility of dataset selection and training-related randomness.
 
-## Reproducibility
 
-The project uses a fixed random seed to make dataset subset selection and training-related randomness more reproducible.
 
-The default seed is:
+However, exact numerical results may vary depending on:
 
-```text
-42
-```
 
-However, exact numerical results can still vary depending on:
 
-* CPU or GPU hardware
-* PyTorch version
-* torchvision version
-* operating system
-* numerical libraries
-* runtime configuration
-* number of threads
-* training duration
+\* CPU/GPU hardware
 
-Therefore, reproducibility should be understood as controlled experimental reproducibility rather than a guarantee of bit-identical results on every machine.
+\* PyTorch version
 
-## Results
+\* torchvision version
 
-Final experimental results are intentionally not included until the experiments have actually been executed.
+\* operating system
 
-No experimental values are fabricated or inserted in advance.
+\* numerical libraries
 
-After the final experiments are completed, the analysis should report the measured values for both architectures.
+\* number of threads
 
-## Expected Baseline Comparison
+\* runtime configuration
 
-| Model | Accuracy | Precision | Recall | F1 | Parameters | Size (MiB) | Latency (ms) |
-|-------|----------|-----------|--------|----|------------|------------|--------------|
-| ResNet18 | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
-| MobileNetV3-Small | TBD | TBD | TBD | TBD | TBD | TBD | TBD |
 
-### Expected optimization comparison
 
-| Metric       | Original | Quantized |
-| ------------ | -------: | --------: |
-| Accuracy     |      TBD |       TBD |
-| Precision    |      TBD |       TBD |
-| Recall       |      TBD |       TBD |
-| F1           |      TBD |       TBD |
-| Size (MiB)   |      TBD |       TBD |
-| Latency (ms) |      TBD |       TBD |
+Therefore, reproducibility should be understood as \*\*controlled experimental reproducibility\*\*, not a guarantee of bit-identical results on every machine.
 
-These tables should only be populated after the corresponding experiments have been executed.
 
-## Planned Visualizations
 
-The final analysis is expected to include several visual comparisons:
+\## Limitations
 
-* Accuracy comparison
-* Macro F1 comparison
-* Parameter-count comparison
-* Model-size comparison
-* Inference-latency comparison
-* Accuracy versus latency
-* Accuracy versus model size
-* Original versus quantized model comparison
 
-The figures will be stored under:
 
-```text
-results/figures/
-```
+\### Dataset
 
-## Discussion
 
-The central analysis does not focus only on which model obtains the highest classification accuracy.
-
-Instead, the project examines the relationship between:
-
-* predictive performance
-* model size
-* parameter count
-* inference latency
-* optimization effects
-
-A model with slightly different predictive performance may have a substantially different computational footprint. The purpose of the experiment is therefore to analyze the measured accuracy–efficiency trade-off rather than reduce the comparison to a single metric.
-
-The final discussion should be based only on the actual experimental measurements obtained under the selected configuration and hardware.
-
-## Limitations
-
-This project has several limitations.
-
-### Dataset limitations
 
 CIFAR-10 is a relatively small benchmark and does not represent every real-world computer-vision task.
 
-The original CIFAR-10 images are only `32 × 32` pixels. Resizing them to `224 × 224` is an experimental preprocessing choice required to use the selected ImageNet-pretrained architectures consistently.
 
-### Training limitations
 
-The default configuration uses a relatively small subset and a limited number of training epochs.
+The original images are only `32 × 32` pixels. Resizing them to `224 × 224` is an experimental preprocessing choice required to use the selected ImageNet-pretrained architectures consistently.
 
-This makes the experiment feasible on modest hardware, but it also means that the default experiment should be interpreted as a lightweight research demonstration rather than a definitive benchmark.
 
-### Hardware limitations
 
-Inference latency depends strongly on:
+\### Training scale
 
-* CPU/GPU hardware
-* PyTorch version
-* runtime configuration
-* batch size
-* number of threads
-* operating system
 
-Latency values should therefore not be generalized beyond the environment in which they were measured.
 
-### Quantization limitations
+The default experiment uses only 2,000 training images, 500 test images, and two training epochs.
 
-The dynamic quantization experiment targets supported `Linear` layers.
 
-The convolutional backbone remains in floating-point precision.
 
-Consequently, the optimization does not represent full CNN quantization and may provide only limited efficiency improvements.
+This makes the experiment feasible on modest hardware but means that the results should be interpreted as a lightweight experimental study rather than a definitive benchmark.
 
-### Statistical limitations
 
-A single training run does not fully characterize the variability of the models.
 
-Repeated experiments with multiple random seeds would provide stronger evidence and allow confidence intervals or other measures of variability to be reported.
+\### Hardware
 
-## Future Work
+
+
+Inference latency depends on hardware, software, batch size, thread configuration, and measurement protocol.
+
+
+
+Latency values should therefore not be generalized beyond the experimental environment.
+
+
+
+\### Quantization
+
+
+
+Only supported `Linear` layers are dynamically quantized. The convolutional backbone remains in floating-point precision.
+
+
+
+\### Statistical variability
+
+
+
+The reported experiment uses one random seed.
+
+
+
+Repeated experiments with multiple seeds would provide stronger statistical evidence and could support confidence intervals or other measures of variability.
+
+
+
+\## Future Work
+
+
 
 Possible extensions include:
 
-* larger CIFAR-10 training and test subsets
-* longer training schedules
-* repeated experiments with multiple random seeds
-* confidence intervals
-* controlled CPU and GPU comparisons
-* more rigorous latency measurement protocols
-* evaluation on an additional computer-vision dataset
-* comparison with additional lightweight architectures
-* investigation of convolution-aware quantization
-* pruning experiments
-* knowledge distillation
-* additional model-compression techniques
 
-These extensions are intentionally outside the scope of the minimal Bachelor-level project.
 
-## Academic Positioning
+\* larger CIFAR-10 subsets
 
-This project is an **experimental Bachelor-level research project**.
+\* longer training schedules
 
-It should be presented honestly as a reproducible comparison and analysis rather than as:
+\* multiple random seeds
 
-* a novel deep learning algorithm
-* a state-of-the-art contribution
-* a new quantization method
-* a production-ready deployment system
+\* confidence intervals
 
-The main academic objective is to understand and experimentally analyze the relationship between predictive performance and computational efficiency in deep learning models.
+\* controlled CPU/GPU comparisons
 
-The project emphasizes:
+\* more rigorous latency measurement
 
-* reproducibility
-* controlled experimentation
-* meaningful evaluation metrics
-* computational efficiency
-* honest interpretation of results
+\* additional computer-vision datasets
 
-## Research Scope
+\* additional lightweight architectures
+
+\* convolution-aware quantization
+
+\* pruning
+
+\* knowledge distillation
+
+\* additional model-compression techniques
+
+
+
+\## Academic Positioning
+
+
+
+This project is an \*\*experimental Bachelor-level research project\*\*.
+
+
+
+It is intentionally presented as:
+
+
+
+\* a reproducible experimental comparison
+
+\* an analysis of accuracy–efficiency trade-offs
+
+\* an introduction to efficient deep learning experimentation
+
+
+
+It does not claim to be:
+
+
+
+\* a novel deep learning algorithm
+
+\* a state-of-the-art contribution
+
+\* a new quantization method
+
+\* a production-ready deployment system
+
+
+
+The project emphasizes reproducibility, controlled experimentation, meaningful evaluation metrics, computational efficiency, and honest interpretation of experimental evidence.
+
+
+
+\## Research Scope
+
+
 
 The project lies at the intersection of:
 
-* Artificial Intelligence
-* Machine Learning
-* Deep Learning
-* Computer Vision
-* Efficient AI
-* Model Optimization
-* AI Systems and Infrastructure
+
+
+\* Artificial Intelligence
+
+\* Machine Learning
+
+\* Deep Learning
+
+\* Computer Vision
+
+\* Efficient AI
+
+\* Model Optimization
+
+\* AI Systems and Infrastructure
+
+
 
 The experimental design is intentionally small enough to be completed at Bachelor level while introducing concepts relevant to research in efficient machine learning and resource-aware AI systems.
 
-## Conclusion
 
-The project investigates a practical question in modern deep learning: how predictive performance and computational efficiency interact when selecting an image-classification model.
 
-By comparing ResNet18 and MobileNetV3-Small under a controlled CIFAR-10 experiment, the project provides a reproducible framework for studying this trade-off.
+\## Conclusion
 
-The final conclusion will be written only after the complete experiments are executed and should directly answer the research question using measured evidence.
 
-No unsupported performance claims will be made.
+
+This project experimentally investigates how predictive performance and computational efficiency interact when selecting deep learning models for image classification.
+
+
+
+Under the tested CIFAR-10 configuration, ResNet18 achieved higher predictive metrics, while MobileNetV3-Small demonstrated a substantially smaller computational footprint and lower measured baseline CPU latency.
+
+
+
+The quantization experiment further illustrates that the impact of an optimization technique depends on both the architecture and the part of the model being optimized.
+
+
+
+These findings are specific to the experimental configuration and should not be interpreted as universal rankings of the two architectures.
+
+
+
+The project provides a reproducible Bachelor-level framework for further investigation into efficient deep learning and resource-aware AI systems.
+
+
+
