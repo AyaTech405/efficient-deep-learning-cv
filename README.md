@@ -104,27 +104,25 @@ ResNet18 achieved approximately:
 
 These values describe this particular experimental configuration and should not be generalized as universal performance differences between the architectures.
 
-## Visual Results ### CPU Inference Latency
+### Visual Results
+
+
+### Accuracy Comparison
 
 
 
-## \## Accuracy Comparison
-
-
-
-!\[Accuracy comparison](results/figures/accuracy\_comparison.png)
-
+![Accuracy comparison](results/figures/accuracy_comparison.png)
 
 
 Under the tested configuration, ResNet18 achieved higher measured classification accuracy, while MobileNetV3-Small offered a substantially smaller model footprint.
 
 
 
-## \## Model Size Comparison
+### Model Size Comparison
 
 
 
-!\[Model size comparison](results/figures/model\_size\_comparison.png)
+![Model size comparison](results/figures/model_size_comparison.png)
 
 
 
@@ -132,9 +130,9 @@ MobileNetV3-Small used substantially fewer parameters and required considerably 
 
 
 
-## \## CPU Inference Latency
+### CPU Inference Latency
 
-!\[CPU inference latency](results/figures/latency\_comparison.png)
+![CPU inference latency](results/figures/latency_comparison.png)
 
 
 
@@ -142,11 +140,11 @@ MobileNetV3-Small showed lower measured baseline CPU inference latency in the be
 
 
 
-## \## Accuracy–Latency Trade-off
+### Accuracy–Latency Trade-off
 
 
 
-!\[CPU inference latency](results/figures/latency\_comparison.png)
+![Accuracy versus latency](results/figures/accuracy_vs_latency.png)
 
 
 
@@ -154,7 +152,6 @@ The figure illustrates the relationship between predictive accuracy and measured
 
 
 
-Training Results
 
 ## Training Results
 
