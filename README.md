@@ -146,7 +146,7 @@ MobileNetV3-Small showed lower measured baseline CPU inference latency in the be
 
 
 
-!\[Accuracy versus latency](results/figures/accuracy\_vs\_latency.png)
+!\[CPU inference latency](results/figures/latency\_comparison.png)
 
 
 
