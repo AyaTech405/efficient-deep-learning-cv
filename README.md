@@ -221,9 +221,10 @@ Under the tested configuration:
 
 The purpose is not to identify a universally superior architecture, but to experimentally examine the relationship between **accuracy, model size, parameter count, and inference efficiency**.
 
+
 ## Project Structure
 
-```text
+
 efficient-deep-learning-cv/
 ├── README.md
 ├── requirements.txt
@@ -235,18 +236,30 @@ efficient-deep-learning-cv/
 │   ├── train.py
 │   ├── evaluate.py
 │   ├── benchmark.py
-│   └── optimize.py
+│   ├── optimize.py
+│   └── generate_figures.py
 │
 ├── results/
 │   └── figures/
-│       └── .gitkeep
+│       ├── accuracy_comparison.png
+│       ├── accuracy_vs_latency.png
+│       ├── f1_comparison.png
+│       ├── latency_comparison.png
+│       ├── model_size_comparison.png
+│       ├── parameter_comparison.png
+│       ├── quantization_accuracy.png
+│       ├── quantization_latency.png
+│       ├── quantization_model_size.png
+│       ├── training_accuracy.png
+│       ├── training_f1.png
+│       └── training_loss.png
 │
 ├── report/
 │   └── report.md
 │
 └── paper/
-    └── research\_paper.md
-```
+    └── research_paper.md
+
 
 ### Main Modules
 
