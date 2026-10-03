@@ -60,9 +60,7 @@ The experiments use reproducible subsets of 2,000 training images and 500 test i
 
 ## 4\. Metrics
 
-The experiment evaluates both predictive performance and computational efficiency
-
-
+The experiment evaluates both predictive performance and computational efficiency.
 
 ## Predictive Metrics
 
@@ -81,44 +79,33 @@ The experiment evaluates both predictive performance and computational efficienc
 
 
 
+The estimated model memory is calculated from the memory required by the model parameters and buffers according to their data types. It should therefore not be interpreted as the serialized .pt or .pth file size.
+
 Latency is hardware-dependent and should only be compared when measurements are obtained under the same machine, runtime, batch size, and measurement conditions.
-
-
 
 ## 5\. Optimization experiment
 
 The baseline experiment is followed by dynamic INT8 post-training quantization of supported Linear layers.
 
-
-
 The optimization is intentionally limited in scope and does not quantize the convolutional layers of the models.
-
-
 
 The optimized model is evaluated using the same classification and efficiency metrics as the original model where supported by the runtime.
 
-
-
 The purpose of this experiment is to investigate the practical effect of a lightweight post-training optimization rather than to propose a new quantization method.
-
 
 
 ## 6\. Results
 
 ### Baseline comparison
 
-|Model|Accuracy|Precision|Recall|F1|Parameters|Size (MiB)|Latency (ms, batch=1)|
+|Model|Accuracy|Precision|Recall|F1|Parameters|Estimated Model Memory (MiB)|Latency (ms, batch=1)|
 |-|-:|-:|-:|-:|-:|-:|-:|
 |ResNet18|85.40%|85.95%|85.35%|85.42%|11,181,642|42.69|34.78|
 |MobileNetV3-Small|73.20%|77.09%|73.30%|72.43%|1,528,106|5.88|16.44|
 
 Under the experimental configuration, ResNet18 achieved higher predictive performance across the reported classification metrics.
 
-
-
-MobileNetV3-Small used approximately 86% fewer parameters and had an approximately 86% smaller model size. Its measured baseline CPU latency was approximately 53% lower than that of ResNet18.
-
-
+MobileNetV3-Small used approximately 86% fewer parameters and had an approximately 86% smaller estimated model memory footprint. Its measured baseline CPU latency was approximately 53% lower than that of ResNet18.
 
 These results illustrate an accuracy–efficiency trade-off between the two architectures under the selected experimental conditions.
 
@@ -148,49 +135,29 @@ For ResNet18, dynamic quantization produced only a very small reduction in model
 |Size (MiB)|5.88|3.58|−2.29 MiB|
 |Latency (ms, batch=1)|20.09|17.29|−2.80 ms|
 
+For MobileNetV3-Small, dynamic quantization reduced the estimated model memory by approximately 39% and reduced the measured CPU latency by approximately 14%.
 
+This was accompanied by a decrease of 0.8 percentage points in accuracy and approximately 0.78 percentage points in macro F1-score.
 
-For MobileNetV3-Small, dynamic quantization reduced the measured model size by approximately 39% and reduced the measured CPU latency by approximately 14%.
-
-
-
-This was accompanied by a decrease of 0.8 percentage points in accuracy and approximately 0.78 percentage points in F1-score.
-
-
-
-**Timing note:** latency can vary between separate executions because of CPU load and runtime conditions. Therefore, the original and optimized latency values in the optimization tables are compared within the same optimization run.
+**Timing note:** Latency can vary between separate executions because of CPU load and runtime conditions. Therefore, the original and optimized latency values in the optimization tables are compared within the same optimization run.
 
 ## 7\. Discussion
-
 The baseline experiment shows different accuracy–efficiency characteristics for the two architectures.
 
-
-
-ResNet18 achieved higher predictive performance on the selected CIFAR-10 test subset. However, this was accompanied by a substantially larger parameter count, larger model size, and higher CPU inference latency.
-
-
+ResNet18 achieved higher predictive performance on the selected CIFAR-10 test subset. However, this was accompanied by a substantially larger parameter count, larger estimated model memory footprint, and higher CPU inference latency.
 
 MobileNetV3-Small required considerably fewer parameters and less memory and achieved lower baseline CPU latency, while its predictive performance was lower under the same training configuration.
 
-
-
 The effect of dynamic quantization was architecture-dependent.
 
+For ResNet18, the tested quantization method had a limited effect. The estimated model memory changed only slightly, and the measured latency was marginally higher after optimization. This is consistent with the fact that the convolutional layers were not quantized and remained in floating point.
 
+For MobileNetV3-Small, the same optimization produced a more visible reduction in estimated model memory and measured latency. However, this reduction was accompanied by a small decrease in predictive performance.
 
-For ResNet18, the tested quantization method had a limited effect. The model size changed only slightly, and the measured latency was marginally higher after optimization. This is consistent with the fact that the convolutional layers were not quantized and remained in floating point.
-
-
-
-For MobileNetV3-Small, the same optimization produced a more visible reduction in model size and measured latency. However, this reduction was accompanied by a small decrease in predictive performance.
-
-
-
-These results show that computational efficiency should not be evaluated using a single metric. Reducing model size or latency can involve a change in predictive performance, and the practical effect of an optimization depends on the architecture and the layers affected by the optimization.
-
-
+These results show that computational efficiency should not be evaluated using a single metric. Reducing model memory or latency can involve a change in predictive performance, and the practical effect of an optimization depends on the architecture and the layers affected by the optimization.
 
 The findings are specific to the CIFAR-10 subset, training configuration, software environment, and CPU used for these experiments.
+
 
 ## 8\. Limitations
 
@@ -214,27 +181,14 @@ Repeated experiments with multiple seeds, longer training, larger datasets, and 
 
 
 
-
-
-
-
 ## 9\. Conclusion
 
 This study compared ResNet18 and MobileNetV3-Small in terms of predictive performance and computational efficiency.
 
+Under the selected experimental configuration, ResNet18 achieved higher classification performance, while MobileNetV3-Small required substantially fewer parameters, had a smaller estimated model memory footprint, and achieved lower baseline CPU inference latency.
 
-
-Under the selected experimental configuration, ResNet18 achieved higher classification performance, while MobileNetV3-Small required substantially fewer parameters, had a smaller model size, and achieved lower baseline CPU inference latency.
-
-
-
-The dynamic INT8 post-training quantization experiment produced different effects for the two architectures. Its effect was limited for ResNet18, while MobileNetV3-Small showed a substantial reduction in model size and measured latency, accompanied by a modest decrease in predictive performance.
-
-
+The dynamic INT8 post-training quantization experiment produced different effects for the two architectures. Its effect was limited for ResNet18, while MobileNetV3-Small showed a substantial reduction in estimated model memory and measured latency, accompanied by a modest decrease in predictive performance.
 
 These results demonstrate that improving computational efficiency involves a trade-off between predictive performance and resource requirements. The appropriate choice therefore depends on the requirements of the target deployment environment rather than on a single evaluation metric.
 
-
-
 The project provides a reproducible Bachelor-level experimental study of accuracy–efficiency trade-offs in pretrained computer-vision models.
-
