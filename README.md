@@ -8,15 +8,17 @@ A Bachelor-level experimental research project studying the trade-off between pr
 
 > How can we improve the computational efficiency of a deep learning image-classification system while maintaining acceptable predictive performance?
 
-This project is an experimental benchmark. It does not claim a new algorithm or state-of-the-art performance.
+This project is an experimental benchmark. It does not claim a new algorithm, a state-of-the-art result, or a novel quantization method.
 
 ## Models
+The experiments compare two ImageNet-pretrained convolutional neural networks:
 
 * **ResNet18** pretrained on ImageNet
 * **MobileNetV3-Small** pretrained on ImageNet
 
 The final classification heads are adapted to the 10 CIFAR-10 classes.
 
+The models are evaluated under the same experimental configuration to study the relationship between predictive performance and computational efficiency.
 ## Dataset
 
 The experiments use **CIFAR-10**, containing 60,000 color images across 10 classes.
@@ -26,7 +28,7 @@ The implementation:
 * resizes images from `32 × 32` to `224 × 224`
 * applies ImageNet normalization
 * uses ImageNet-pretrained torchvision backbones
-* uses reproducible dataset subsets
+* uses fixed reproducible subsets selected with controlled random seeds
 
 ### Experimental Configuration
 
@@ -45,51 +47,57 @@ The implementation:
 
 The configuration is intentionally lightweight so that the experiment can be reproduced on a normal computer.
 
+A fixed subset of 2,000 CIFAR-10 images is used for training and a separate fixed subset of 500 images is used for evaluation. No dedicated validation split is used in this lightweight experiment.
+
 ## Methodology
 
 The experimental workflow consists of:
 
 1. Load CIFAR-10 using reproducible subsets.
 2. Resize the images to the input resolution expected by the pretrained models.
-3. Load ImageNet-pretrained ResNet18 and MobileNetV3-Small.
-4. Adapt the final classification layers to the 10 CIFAR-10 classes.
-5. Fine-tune both models using the same experimental configuration.
-6. Evaluate predictive performance on the test subset.
-7. Measure parameter count and estimated model size.
-8. Benchmark CPU inference latency.
-9. Compare predictive performance and computational efficiency.
-10. Apply post-training dynamic INT8 quantization to supported `Linear` layers.
-11. Compare the original and quantized models using the same optimization-run evaluation procedure.
+3. Apply ImageNet normalization.
+4. Load ImageNet-pretrained ResNet18 and MobileNetV3-Small.
+5. Adapt the final classification layers to the 10 CIFAR-10 classes.
+6. Fine-tune both models using the same experimental configuration.
+7. Evaluate predictive performance on the test subset.
+8. Measure parameter count and estimated model size.
+9. Benchmark CPU inference latency.
+10. Compare predictive performance and computational efficiency.
+11. Apply post-training dynamic INT8 quantization to supported `Linear` layers.
+12. Compare the original and quantized models using the same optimization-run evaluation procedure.
 
 ## Evaluation Metrics
 
 ### Predictive Performance
-
+The following classification metrics are reported:
 * Accuracy
 * Macro Precision
 * Macro Recall
 * Macro F1-score
 
 ### Computational Efficiency
-
+The following efficiency-related metrics are reported:
 * Total parameter count
 * Estimated model size in MiB
 * CPU inference latency in milliseconds
 
-Latency is hardware- and runtime-dependent. Direct latency comparisons are meaningful only when the same hardware, software environment, batch size, and measurement protocol are used.
+## Terminology 
 
+The reported estimated model memory size is calculated from model parameters and buffers according to their data types. It is not the serialized .pt or .pth checkpoint file size.
+
+Latency is hardware- and runtime-dependent. Direct latency comparisons are meaningful only when the same hardware, software environment, batch size, and measurement protocol are used.
 # Results
 
 The following results were obtained from the completed experiments using the default configuration described above.
 
 ## Baseline Comparison
 
-|Model|Accuracy|Precision|Recall|Macro F1|Parameters|Size (MiB)|Latency (ms)|
+|Model|Accuracy|Precision|Recall|Macro F1|Parameters|Estimated Model Memory (MiB)|Latency (ms)|
 |-|-:|-:|-:|-:|-:|-:|-:|
 |ResNet18|0.854|0.8595|0.8535|0.8542|11,181,642|42.69|34.78|
 |MobileNetV3-Small|0.732|0.7709|0.7330|0.7243|1,528,106|5.88|16.44|
 
-Under this experimental configuration, ResNet18 achieved higher predictive metrics, while MobileNetV3-Small required substantially fewer parameters, less storage, and lower measured CPU inference latency.
+Under this experimental configuration, ResNet18 achieved higher measured predictive metrics, while MobileNetV3-Small required substantially fewer parameters, a smaller estimated model memory footprint, and lower measured baseline CPU inference latency.
 
 Compared with ResNet18, MobileNetV3-Small had approximately:
 
@@ -105,68 +113,77 @@ ResNet18 achieved approximately:
 These values describe this particular experimental configuration and should not be generalized as universal performance differences between the architectures.
 
 ### Visual Results
+The repository contains two figure-generation workflows:
 
+* src/generate_figures.py generates the original detailed experimental figures.
+* paper/figures/generate_paper_figures.py generates the consolidated figures used for the research paper.
 
-### Accuracy Comparison
+The research paper consolidates the original 12 experimental figures into five main figures and one appendix figure.
 
+### Figure 1 — Baseline Predictive Performance
 
+#### Accuracy and macro F1 comparison between ResNet18 and MobileNetV3-Small.
 
-![Accuracy comparison](results/figures/accuracy_comparison.png)
+![Baseline predictive performance](paper/figures/fig1_baseline_accuracy_f1.png)
 
+Under the tested configuration, ResNet18 achieved higher measured predictive performance, while MobileNetV3-Small offered a substantially smaller computational footprint.
 
-Under the tested configuration, ResNet18 achieved higher measured classification accuracy, while MobileNetV3-Small offered a substantially smaller model footprint.
+### Figure 2 — Model Complexity and Memory Footprint
 
+#### Parameter count and estimated model memory size.
 
+![Model complexity and memory footprint](paper/figures/fig2_parameters_and_size.png)
 
-### Model Size Comparison
+MobileNetV3-Small used substantially fewer parameters and required considerably less estimated model memory than ResNet18.
 
+### Figure 3 — Accuracy–Latency Trade-off
 
+#### Measured CPU inference latency versus classification accuracy.
 
-![Model size comparison](results/figures/model_size_comparison.png)
-
-
-
-MobileNetV3-Small used substantially fewer parameters and required considerably less estimated model storage than ResNet18.
-
-
-
-### CPU Inference Latency
-
-![CPU inference latency](results/figures/latency_comparison.png)
-
-
-
-MobileNetV3-Small showed lower measured baseline CPU inference latency in the benchmark performed under the same experimental environment.
-
-
-
-### Accuracy–Latency Trade-off
-
-
-
-![Accuracy versus latency](results/figures/accuracy_vs_latency.png)
-
-
+![Accuracy–latency trade-off](paper/figures/fig3_accuracy_vs_latency.png)
 
 The figure illustrates the relationship between predictive accuracy and measured CPU inference latency for the two models under the reported experimental configuration.
 
+### Figure 4 — ResNet18 Quantization
 
+#### Effect of dynamic INT8 quantization on ResNet18.
 
+![ResNet18 quantization](paper/figures/fig4_resnet18_quantization.png)
 
-## Training Results
+The figure compares the original and dynamically quantized ResNet18 models in terms of predictive performance, estimated model memory size, and CPU inference latency.
+
+### Figure 5 — MobileNetV3-Small Quantization
+
+#### Effect of dynamic INT8 quantization on MobileNetV3-Small.
+
+![MobileNetV3-Small quantization](paper/figures/fig5_mobilenetv3_small_quantization.png)
+
+The figure compares the original and dynamically quantized MobileNetV3-Small models in terms of predictive performance, estimated model memory size, and CPU inference latency.
+
+### Figure A1 — Training Curves
+
+#### Training loss, evaluation accuracy, and evaluation macro F1 across the two epochs.
+
+![Training curves](paper/figures/figA1_training_curves.png)
+
+The appendix figure shows the evolution of the training loss and evaluation metrics during the two-epoch fine-tuning process.
+
+## Epoch-wise Evaluation Results
 
 The models were fine-tuned for two epochs.
 
+The loss shown below is the training loss, while accuracy and macro F1 are evaluation metrics computed during the training process.
+
 ### ResNet18
 
-|Epoch|Training Loss|Accuracy|Macro F1|
+|Epoch|Training Loss|Evaluation Accuracy|Macro F1|
 |-:|-:|-:|-:|
 |1|1.1446|0.7860|0.7836|
 |2|0.3868|0.8540|0.8542|
 
 ### MobileNetV3-Small
 
-|Epoch|Training Loss|Accuracy|Macro F1|
+|Epoch|Training Loss|Evaluation Accuracy|Macro F1|
 |-:|-:|-:|-:|
 |1|1.8152|0.6440|0.6240|
 |2|0.8804|0.7320|0.7243|
@@ -187,7 +204,7 @@ Therefore, this experiment should be interpreted as a study of a simple post-tra
 |Precision|0.8595|0.8578|−0.17 pp|
 |Recall|0.8535|0.8515|−0.21 pp|
 |Macro F1|0.8542|0.8521|−0.21 pp|
-|Size (MiB)|42.69|42.67|−0.02 MiB|
+|Estimated Model Memory (MiB)|42.69|42.67|−0.02 MiB|
 |Latency (ms)|38.62|38.89|+0.27 ms|
 
 For ResNet18, quantization of the supported linear layers produced only a very small reduction in estimated model size and did not improve measured latency in this experiment.
@@ -200,7 +217,7 @@ For ResNet18, quantization of the supported linear layers produced only a very s
 |Precision|0.7709|0.7667|−0.41 pp|
 |Recall|0.7330|0.7255|−0.75 pp|
 |Macro F1|0.7243|0.7166|−0.78 pp|
-|Size (MiB)|5.88|3.58|−2.29 MiB|
+|Estimated Model Memory (MiB)|5.88|3.58|−2.29 MiB|
 |Latency (ms)|20.09|17.29|−2.80 ms|
 
 For MobileNetV3-Small, the quantization experiment reduced the measured model size by approximately **39.0%** and reduced measured latency by approximately **13.9%**, while predictive metrics decreased modestly under this configuration.
@@ -219,13 +236,21 @@ Under the tested configuration:
 * MobileNetV3-Small had lower measured baseline CPU latency.
 * The simple dynamic quantization experiment had different effects on the two architectures.
 
-The purpose is not to identify a universally superior architecture, but to experimentally examine the relationship between **accuracy, model size, parameter count, and inference efficiency**.
+The purpose is not to identify a universally superior architecture, but to experimentally examine the relationship between:
+
+* predictive accuracy
+* model size
+* parameter count
+* inference latency
+* post-training optimization
+
+The results therefore describe an experimental trade-off rather than a universal ranking of the two architectures.
 
 
 ## Project Structure
 
-
 efficient-deep-learning-cv/
+│
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
@@ -240,24 +265,37 @@ efficient-deep-learning-cv/
 │   └── generate_figures.py
 │
 ├── results/
+│   ├── training/
+│   │   ├── resnet18.csv
+│   │   └── mobilenetv3_small.csv
+│   │
+│   ├── evaluation/
+│   │   ├── resnet18.json
+│   │   └── mobilenetv3_small.json
+│   │
+│   ├── optimization/
+│   │   ├── resnet18.json
+│   │   └── mobilenetv3_small.json
+│   │
+│   ├── benchmark.csv
 │   └── figures/
-│       ├── accuracy_comparison.png
-│       ├── accuracy_vs_latency.png
-│       ├── f1_comparison.png
-│       ├── latency_comparison.png
-│       ├── model_size_comparison.png
-│       ├── parameter_comparison.png
-│       ├── quantization_accuracy.png
-│       ├── quantization_latency.png
-│       ├── quantization_model_size.png
-│       ├── training_accuracy.png
-│       ├── training_f1.png
-│       └── training_loss.png
 │
 ├── report/
 │   └── report.md
 │
 └── paper/
+    ├── data/
+    │   └── experiment_results.json
+    │
+    ├── figures/
+    │   ├── generate_paper_figures.py
+    │   ├── fig1_baseline_accuracy_f1.png
+    │   ├── fig2_parameters_and_size.png
+    │   ├── fig3_accuracy_vs_latency.png
+    │   ├── fig4_resnet18_quantization.png
+    │   ├── fig5_mobilenetv3_small_quantization.png
+    │   └── figA1_training_curves.png
+    │
     └── research_paper.md
 
 
@@ -269,9 +307,20 @@ efficient-deep-learning-cv/
 * `src/evaluate.py` — checkpoint evaluation and classification metrics.
 * `src/benchmark.py` — inference benchmarking and model comparison.
 * `src/optimize.py` — post-training dynamic quantization experiment.
+* `src/generate_figures.py` — Generates the original detailed experimental figures from the project results.
+* `paper/figures/generate_paper_figures.py` — Generates the consolidated figures used in the research paper from the centralized experiment results.
 
 Generated datasets, checkpoints, virtual environments, CSV/JSON result files, and temporary files are excluded from version control through `.gitignore`.
+## Repository Scope
+This repository contains the source code, experimental results, analysis scripts, and research-paper materials associated with the project.
 
+The `src/` directory contains the experimental pipeline.
+
+The `results/` directory contains the generated experimental outputs.
+
+The `paper/` directory contains the research-paper manuscript materials, centralized paper data, and consolidated publication figures.
+
+The project therefore separates the experimental implementation from the presentation and analysis used in the research paper.
 ## Installation
 
 From the project root:
@@ -390,7 +439,12 @@ The original images are only `32 × 32` pixels. Resizing them to `224 × 224` is
 The default experiment uses only 2,000 training images, 500 test images, and two training epochs.
 
 This makes the experiment feasible on modest hardware but means that the results should be interpreted as a lightweight experimental study rather than a definitive benchmark.
+### No Dedicated Validation Set
+The experiment does not use a separate validation split.
 
+The 500-image subset is used for evaluation during the reported experiment.
+
+Therefore, the study should not be interpreted as a full train/validation/test experimental protocol.
 ### Hardware
 
 Inference latency depends on hardware, software, batch size, thread configuration, and measurement protocol.
@@ -398,15 +452,20 @@ Inference latency depends on hardware, software, batch size, thread configuratio
 Latency values should therefore not be generalized beyond the experimental environment.
 
 ### Quantization
+Only supported Linear layers are dynamically quantized.
 
-Only supported `Linear` layers are dynamically quantized. The convolutional backbone remains in floating-point precision.
+The convolutional backbone remains in floating-point precision.
+
+Consequently, the observed memory and latency changes do not represent the potential effect of full convolutional INT8 quantization.
 
 ### Statistical Variability
-
 The reported experiment uses one random seed.
 
 Repeated experiments with multiple seeds would provide stronger statistical evidence and could support confidence intervals or other measures of variability.
+## Training Duration
+The models are trained for only two epochs.
 
+The resulting performance should therefore be interpreted as the outcome of a lightweight experimental configuration rather than as fully optimized model performance.
 ## Future Work
 
 Possible extensions include:
@@ -423,7 +482,8 @@ Possible extensions include:
 * pruning
 * knowledge distillation
 * additional model-compression techniques
-
+* deployment-oriented benchmarking on edge or resource-constrained hardware
+These extensions could provide stronger evidence about the generality of the observed accuracy–efficiency trade-offs.
 ## Academic Positioning
 
 This project is an **experimental Bachelor-level research project**.
@@ -433,6 +493,7 @@ It is intentionally presented as:
 * a reproducible experimental comparison
 * an analysis of accuracy–efficiency trade-offs
 * an introduction to efficient deep learning experimentation
+* a practical study of model optimization
 
 It does not claim to be:
 
@@ -459,13 +520,12 @@ The experimental design is intentionally small enough to be completed at Bachelo
 
 ## Conclusion
 
-This project experimentally investigates how predictive performance and computational efficiency interact when selecting deep learning models for image classification.
+This project experimentally investigates how predictive performance and computational efficiency interact when comparing pretrained deep learning models for image classification.
 
 Under the tested CIFAR-10 configuration, ResNet18 achieved higher predictive metrics, while MobileNetV3-Small demonstrated a substantially smaller computational footprint and lower measured baseline CPU latency.
 
 The quantization experiment further illustrates that the impact of an optimization technique depends on both the architecture and the part of the model being optimized.
 
-These findings are specific to the experimental configuration and should not be interpreted as universal rankings of the two architectures.
+The results are specific to the experimental configuration and should not be interpreted as universal rankings of the two architectures.
 
-The project provides a reproducible Bachelor-level framework for further investigation into efficient deep learning and resource-aware AI systems.
-
+The project provides a reproducible Bachelor-level framework for further investigation into efficient deep learning, model optimization, and resource-aware AI systems.
