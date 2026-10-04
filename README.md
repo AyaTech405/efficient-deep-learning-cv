@@ -246,11 +246,10 @@ The purpose is not to identify a universally superior architecture, but to exper
 
 The results therefore describe an experimental trade-off rather than a universal ranking of the two architectures.
 
-
 ## Project Structure
 
+```text
 efficient-deep-learning-cv/
-│
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
@@ -265,20 +264,8 @@ efficient-deep-learning-cv/
 │   └── generate_figures.py
 │
 ├── results/
-│   ├── training/
-│   │   ├── resnet18.csv
-│   │   └── mobilenetv3_small.csv
-│   │
-│   ├── evaluation/
-│   │   ├── resnet18.json
-│   │   └── mobilenetv3_small.json
-│   │
-│   ├── optimization/
-│   │   ├── resnet18.json
-│   │   └── mobilenetv3_small.json
-│   │
-│   ├── benchmark.csv
 │   └── figures/
+│       └── [generated result figures]
 │
 ├── report/
 │   └── report.md
